@@ -54,30 +54,31 @@ function encode(string $plainMessage, int $num_rails): string
 
 function decode(string $cipherMessage, int $num_rails): string
 {
-    return "";
+    $fence = [];
+    $chars = str_split($cipherMessage);
+    for ($i = 0; $i < $num_rails; $i++) {
+        $fence[$i] = array_fill(0, count($chars), null);
+    }
+    $pattern = range(0, $num_rails - 1);
+    if ($num_rails - 2 >= 1) {
+        $pattern = array_merge($pattern, range($num_rails - 2, 1));
+    }
+    for ($i = 0; $i < count($chars); $i++) {
+        $rail = $pattern[$i % count($pattern)];
+        $fence[$rail][$i] = '*';
+    }
+    $index = 0;
+    for ($y = 0; $y < $num_rails; $y++) {
+        for ($x = 0; $x < count($chars); $x++) {
+            if ($fence[$y][$x] && $index < count($chars)) {
+                $fence[$y][$x] = $chars[$index++];
+            }
+        }
+    }
+    $result = "";
+    for ($i = 0; $i < count($chars); $i++) {
+        $rail = $pattern[$i % count($pattern)];
+        $result .= $fence[$rail][$i];
+    }
+    return $result;
 }
-
-echo '<pre>';
-print_r(encode('WEAREDISCOVEREDFLEEATONCE', 3));
-echo '<br>WECRLTEERDSOEEFEAOCAIVDEN<br>';
-echo '<br>';
-print_r(decode('WECRLTEERDSOEEFEAOCAIVDEN', 3));
-echo '<br>WEAREDISCOVEREDFLEEATONCE<br>';
-echo '</pre>';
-
-// W . . . . . . . . . A . . . . . L . . . T . . . E
-// . E . . . . . . . O . . . . . F . E . A . O . C .
-// . . A . . . . . A . V . . . D . . . E . . . N . .
-// . . . A . . . R . . . . . O . E . E . F . E . A . O . C .. . I . . . V . . . D . . . E . . . N . .
-// . . . . A . A . . . . . V . . . D . . . E . . . N . .
-// - . . . . A . . . . . . . V . . . D . . . E . . . N . .
-
-
-// EIEXMSMESAORIWSCE
-// EXERCISMISAWESOME
-// E . . . . . . . I . . . . . . . E . . . . . . .
-// . X . . . . . M . S . . . . . M . . . . . . . .
-// . . E . . . S . . . A . . . O . . . . . . . . .
-// . . . R . I . . . . . W . S . . . . . . . . . . 
-// . . . . C . . . . . . . E . . . . . . . . . . . 
-// .
