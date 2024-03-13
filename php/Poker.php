@@ -21,18 +21,14 @@ class Poker
         foreach ($hands as $str) {
             $hands_splitted[] = explode(",", $str);
         }
-        // Order cards
-        $sortedHands = [];
-        for ($i = 0; $i < count($hands_splitted); $i++) {
-            $cards = $hands_splitted[$i];
-            $sortedHands[] = $this->sortCards($cards);
-        }
-        $this->StraightFlush($sortedHands);
+
+        $this->StraightFlush($hands_splitted);
     }
 
     private function sortCards(array &$cards)
     {
-        usort($cards, function ($a, $b) {
+        $sortedCards = $cards;
+        usort($sortedCards, function ($a, $b) {
             // Get card's numbers
             $num_a = substr($a, 0, -1);
             $num_b = substr($b, 0, -1);
@@ -44,21 +40,24 @@ class Poker
             // Compare the positions
             return $pos_a - $pos_b;
         });
-        return $cards;
+        return $sortedCards;
     }
 
     private function StraightFlush($hands)
     {
-        $straightFlushHands = []; // Almacena todas las manos con escalera
-        $maxStraightFlushValue = -1; // Almacena el valor más alto de la escalera encontrada
+        $originalStraightFlushHands = []; // Stores all original hands that are StraightFlus
+        $maxStraightFlushValue = -1; // Stores the highest value of the StraightFlus found
 
         foreach ($hands as $cards) {
             $straightFlush = true;
-            $straightFlushValue = -1; // Almacena el valor de la escalera encontrada
+            $straightFlushValue = -1; // Stores the value of the found StraightFlus
 
-            for ($i = 0; $i < count($cards) - 1; $i++) {
-                $currentCard = $cards[$i];
-                $nextCard = $cards[$i + 1];
+            // Order cards
+            $sortedCards = $this->sortCards($cards);
+
+            for ($i = 0; $i < count($sortedCards) - 1; $i++) {
+                $currentCard = $sortedCards[$i];
+                $nextCard = $sortedCards[$i + 1];
 
                 $currentNumber = substr($currentCard, 0, -1);
                 $nextNumber = substr($nextCard, 0, -1);
@@ -67,40 +66,36 @@ class Poker
                 $nextPosition = array_search($nextNumber, $this->order);
 
                 if ($nextPosition !== $currentPosition + 1) {
-                    $straightFlush = false; // No es una escalera
+                    $straightFlush = false; // Is not a StraightFlus
                     break;
                 }
 
                 if ($straightFlushValue === -1) {
-                    $straightFlushValue = $currentPosition; // Asigna el primer valor de la escalera
+                    $straightFlushValue = $currentPosition; // Assigns the first value of the StraightFlus
                 }
             }
 
             if ($straightFlush) {
-                $straightFlushHands[] = $cards;
+                $originalStraightFlushHands[] = ['cards' => $cards, 'value' => $straightFlushValue];
                 $maxStraightFlushValue = max($maxStraightFlushValue, $straightFlushValue);
             }
         }
 
-        // Filtra las manos que contienen la escalera más alta o empates
-        $highests = array_filter($straightFlushHands, function ($cards) use ($maxStraightFlushValue) {
-            $firstCardValue = array_search(substr($cards[0], 0, -1), $this->order);
-            return $firstCardValue === $maxStraightFlushValue;
+        // Filter out hands that contain the highest straight or ties
+        $this->bestHands = array_filter($originalStraightFlushHands, function ($hand) use ($maxStraightFlushValue) {
+            return $hand['value'] === $maxStraightFlushValue;
         });
 
-        // Si hay escaleras, almacena las manos con escaleras en $bestHands
-        if (!empty($highests)) {
-            $results = array_values($highests);
-            foreach ($results as $result) {
-                $this->bestHands[] = implode(",", $result);
-            }
-        }
+        // Extract only cards from filtered hands in string format
+        $this->bestHands = array_map(function ($hand) {
+            return implode(",", $hand['cards']);
+        }, $this->bestHands);
     }
 }
 
 
 
-$hands = ['JS,10S,9C,8D,7H', 'JD,10H,8S,9D,7C'];
+$hands = ['8S,10S,9C,JD,7H', '9D,10H,JS,8D,7C'];
 
 $instance = new Poker($hands);
 echo '<pre>';
