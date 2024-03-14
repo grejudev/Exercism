@@ -23,6 +23,7 @@ class Poker
         }
 
         $this->StraightFlush($hands_splitted);
+        $this->FourOfAKind($hands_splitted);
     }
 
     private function sortCards(array &$cards)
@@ -91,11 +92,52 @@ class Poker
             return implode(",", $hand['cards']);
         }, $this->bestHands);
     }
+
+    private function FourOfAKind($hands)
+    {
+        $maxNumber = -1;
+        $fourOfAKindHands = [];
+
+        foreach ($hands as $cards) {
+            $higherNumber = 0;
+            $numberValue = -1;
+            $numbers = [];
+            foreach ($cards as $currentCard) {
+                $currentNumber = substr($currentCard, 0, -1);
+                $numbers[$currentNumber] = isset($numbers[$currentNumber]) ? $numbers[$currentNumber] + 1 : 1;
+            }
+
+            // Find the number that appears four times
+            foreach ($numbers as $number => $count) {
+                if ($count === 4) {
+                    $numberValue = array_search($number, $this->order);
+                    $fourOfAKindHands[] = ['cards' => $cards, 'value' => $numberValue];
+                    break;
+                }
+            }
+        }
+
+        // Sort four-of-a-kind hands by the highest card value
+        usort($fourOfAKindHands, function ($a, $b) {
+            return $a['value'] - $b['value'];
+        });
+        // Add all the highest four-of-a-kind hands to $this->bestHands if they have the same value
+        if (!empty($fourOfAKindHands)) {
+            $highestValue = $fourOfAKindHands[0]['value'];
+            foreach ($fourOfAKindHands as $hand) {
+                if ($hand['value'] === $highestValue) {
+                    $this->bestHands[] = implode(",", $hand['cards']);
+                } else {
+                    break; // Stop adding if the value is not the highest
+                }
+            }
+        }
+    }
 }
 
 
 
-$hands = ['8S,10S,9C,JD,7H', '9D,10H,JS,8D,7C'];
+$hands = ['3S,3H,3C,8D,3D', '4S,4H,4S,4D,5C'];
 
 $instance = new Poker($hands);
 echo '<pre>';
