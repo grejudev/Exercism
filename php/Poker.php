@@ -22,8 +22,17 @@ class Poker
             $hands_splitted[] = explode(",", $str);
         }
 
+        // Call methods for hand evaluation in order of highest to lowest
         $this->StraightFlush($hands_splitted);
+        if (!empty($this->bestHands)) return;
+
         $this->FourOfAKind($hands_splitted);
+        if (!empty($this->bestHands)) return;
+
+        $this->FullHouse($hands_splitted);
+        if (!empty($this->bestHands)) return;
+
+        // Add more hand evaluations here...
     }
 
     private function sortCards(array &$cards)
@@ -95,11 +104,9 @@ class Poker
 
     private function FourOfAKind($hands)
     {
-        $maxNumber = -1;
         $fourOfAKindHands = [];
 
         foreach ($hands as $cards) {
-            $higherNumber = 0;
             $numberValue = -1;
             $numbers = [];
             foreach ($cards as $currentCard) {
@@ -128,16 +135,92 @@ class Poker
                 if ($hand['value'] === $highestValue) {
                     $this->bestHands[] = implode(",", $hand['cards']);
                 } else {
-                    break; // Stop adding if the value is not the highest
+                    break;
                 }
             }
         }
+    }
+
+    private function FullHouse($hands)
+    {
+        $fullHouseHands = [];
+
+        foreach ($hands as $cards) {
+            $numberValue = -1;
+            $numbers = [];
+            foreach ($cards as $currentCard) {
+                $currentNumber = substr($currentCard, 0, -1);
+                $numbers[$currentNumber] = isset($numbers[$currentNumber]) ? $numbers[$currentNumber] + 1 : 1;
+            }
+
+            if (in_array(3, $numbers) && in_array(2, $numbers)) {
+                $trioValue = null;
+                $pairValue = null;
+                foreach ($numbers as $number => $count) {
+                    if ($count === 3) {
+                        $trioValue = array_search($number, $this->order);
+                    }
+                    if ($count === 2) {
+                        $pairValue = array_search($number, $this->order);
+                    }
+                }
+                $fullHouseHands[] = ['cards' => $cards, 'trio_value' => $trioValue, 'pair_value' => $pairValue];
+            }
+        }
+
+        // Sort full house hands by the trio value and then by the pair value
+        usort($fullHouseHands, function ($a, $b) {
+            if ($a['trio_value'] !== $b['trio_value']) {
+                return $b['trio_value'] - $a['trio_value']; // Sort by trio value in descending order
+            } elseif ($a['pair_value'] !== $b['pair_value']) {
+                return $b['pair_value'] - $a['pair_value']; // Sort by pair value in descending order
+            } else {
+                return 0;
+            }
+        });
+
+        // Find the highest trio value
+        $highestTrioValue = null;
+        foreach ($fullHouseHands as $hand) {
+            if ($highestTrioValue === null || $hand['trio_value'] < $highestTrioValue) {
+                $highestTrioValue = $hand['trio_value'];
+            }
+        }
+
+        // Find the highest pair value among hands with the highest trio value
+        $highestPairValue = null;
+        foreach ($fullHouseHands as $hand) {
+            if ($hand['trio_value'] === $highestTrioValue) {
+                if ($highestPairValue === null || $hand['pair_value'] < $highestPairValue) {
+                    $highestPairValue = $hand['pair_value'];
+                }
+            }
+        }
+
+        // Add the best full house hand(s) to $this->bestHands
+        $bestHands = [];
+        foreach ($fullHouseHands as $hand) {
+            if ($hand['trio_value'] === $highestTrioValue && $hand['pair_value'] === $highestPairValue) {
+                $bestHands[] = implode(",", $hand['cards']);
+            }
+        }
+
+        // If there are no hands with the highest pair value, try to find hands with the highest trio value only
+        if (empty($bestHands)) {
+            foreach ($fullHouseHands as $hand) {
+                if ($hand['trio_value'] === $highestTrioValue) {
+                    $bestHands[] = implode(",", $hand['cards']);
+                }
+            }
+        }
+
+        $this->bestHands = $bestHands;
     }
 }
 
 
 
-$hands = ['3S,3H,3C,8D,3D', '4S,4H,4S,4D,5C'];
+$hands = ['4S,5H,4D,5D,4H', '3S,3H,2S,3D,3C'];
 
 $instance = new Poker($hands);
 echo '<pre>';
