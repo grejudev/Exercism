@@ -32,6 +32,8 @@ class Poker
         $this->FullHouse($hands_splitted);
         if (!empty($this->bestHands)) return;
 
+        $this->Flush($hands_splitted);
+        if (!empty($this->bestHands)) return;
         // Add more hand evaluations here...
     }
 
@@ -216,11 +218,64 @@ class Poker
 
         $this->bestHands = $bestHands;
     }
+
+    private function Flush($hands)
+    {
+        $bestFlush = [];
+
+        foreach ($hands as $originalCards) {
+            // Make a copy of the original cards
+            $cards = $originalCards;
+
+            $suits = [];
+            foreach ($cards as $currentCard) {
+                $currentSuit = substr($currentCard, -1);
+                $suits[$currentSuit][] = $currentCard;
+            }
+
+            foreach ($suits as $suit => $cards) {
+                if (count($cards) >= 5) {
+                    // Take the top 5 cards for the flush
+                    $flush = array_slice($cards, 0, 5);
+
+                    // Check if this flush is better than the current best flush
+                    if (empty($bestFlush)) {
+                        $bestFlush = $flush;
+                    } else {
+                        $comparison = $this->compareFlushes($flush, $bestFlush);
+                        if ($comparison > 0) {
+                            $bestFlush = $flush;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add the best flush hand to $this->bestHands
+        if (!empty($bestFlush)) {
+            // Convert the best flush to a comma-separated string and add it to $this->bestHands
+            $this->bestHands[] = implode(",", $bestFlush);
+        }
+    }
+
+    private function compareFlushes($flush1, $flush2)
+    {
+        // Compare the ranks of the highest cards in the flushes
+        for ($i = 0; $i < 5; $i++) {
+            $rank1 = substr($flush1[$i], 0, -1);
+            $rank2 = substr($flush2[$i], 0, -1);
+            $comparison = array_search($rank2, $this->order) - array_search($rank1, $this->order);
+            if ($comparison !== 0) {
+                return $comparison;
+            }
+        }
+        return 0; // The flushes are equal
+    }
 }
 
 
 
-$hands = ['4S,5H,4D,5D,4H', '3S,3H,2S,3D,3C'];
+$hands = ['2H,6H,7H,8H,5H', '8S,3S,5S,6S,7S'];
 
 $instance = new Poker($hands);
 echo '<pre>';
