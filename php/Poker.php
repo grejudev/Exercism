@@ -37,6 +37,9 @@ class Poker
 
         $this->Straight($hands_splitted);
         if (!empty($this->bestHands)) return;
+
+        $this->ThreeOfAKind($hands_splitted);
+        if (!empty($this->bestHands)) return;
         // Add more hand evaluations here...
     }
 
@@ -325,6 +328,44 @@ class Poker
         }, $this->bestHands);
     }
 
+    private function ThreeOfAKind($hands) {
+        $threeOfAKindHands = [];
+
+        foreach ($hands as $cards) {
+            $numberValue = -1;
+            $numbers = [];
+            foreach ($cards as $currentCard) {
+                $currentNumber = substr($currentCard, 0, -1);
+                $numbers[$currentNumber] = isset($numbers[$currentNumber]) ? $numbers[$currentNumber] + 1 : 1;
+            }
+
+            // Find the number that appears three times
+            foreach ($numbers as $number => $count) {
+                if ($count === 3) {
+                    $numberValue = array_search($number, $this->order);
+                    $threeOfAKindHands[] = ['cards' => $cards, 'value' => $numberValue];
+                    break;
+                }
+            }
+        }
+
+        // Sort three-of-a-kind hands by the highest card value
+        usort($threeOfAKindHands, function ($a, $b) {
+            return $a['value'] - $b['value'];
+        });
+        // Add all the highest four-of-a-kind hands to $this->bestHands if they have the same value
+        if (!empty($threeOfAKindHands)) {
+            $highestValue = $threeOfAKindHands[0]['value'];
+            foreach ($threeOfAKindHands as $hand) {
+                if ($hand['value'] === $highestValue) {
+                    $this->bestHands[] = implode(",", $hand['cards']);
+                } else {
+                    break;
+                }
+            }
+        } 
+    }
+
     private function compareFlushes($flush1, $flush2)
     {
         // Compare the ranks of the highest cards in the flushes
@@ -342,8 +383,9 @@ class Poker
 
 
 
-$hands = ['4S,6C,7S,8D,5H', '5S,7H,8S,9D,6H'];
+// $hands = ['4S,6C,7S,8D,5H', '5S,7H,8S,9D,6H'];
 // $hands = ['4H,7H,8H,9H,6H', '2S,4S,5S,6S,7S'];
-
+// Three pair
+$hands = ['2S,8H,2H,8D,JH', '4S,5H,4C,8S,4H'];
 
 $instance = new Poker($hands);
