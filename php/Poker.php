@@ -40,6 +40,9 @@ class Poker
 
         $this->ThreeOfAKind($hands_splitted);
         if (!empty($this->bestHands)) return;
+
+        $this->TwoPair($hands_splitted);
+        if (!empty($this->bestHands)) return;
         // Add more hand evaluations here...
     }
 
@@ -328,7 +331,8 @@ class Poker
         }, $this->bestHands);
     }
 
-    private function ThreeOfAKind($hands) {
+    private function ThreeOfAKind($hands)
+    {
         $threeOfAKindHands = [];
 
         foreach ($hands as $cards) {
@@ -353,7 +357,7 @@ class Poker
         usort($threeOfAKindHands, function ($a, $b) {
             return $a['value'] - $b['value'];
         });
-        // Add all the highest four-of-a-kind hands to $this->bestHands if they have the same value
+        // Add all the highest three-of-a-kind hands to $this->bestHands if they have the same value
         if (!empty($threeOfAKindHands)) {
             $highestValue = $threeOfAKindHands[0]['value'];
             foreach ($threeOfAKindHands as $hand) {
@@ -363,8 +367,71 @@ class Poker
                     break;
                 }
             }
-        } 
+        }
     }
+
+    private function TwoPair($hands)
+    {
+        $twoPair = [];
+
+        foreach ($hands as $cards) {
+            $numbers = [];
+            foreach ($cards as $currentCard) {
+                $currentNumber = substr($currentCard, 0, -1);
+                $numbers[$currentNumber] = isset($numbers[$currentNumber]) ? $numbers[$currentNumber] + 1 : 1;
+            }
+
+            // Find pairs that appear twice
+            $pairValues = [];
+            foreach ($numbers as $number => $count) {
+                if ($count === 2) {
+                    $pairValues[] = $number;
+                }
+            }
+
+            // Check if two pairs were found
+            if (count($pairValues) === 2) {
+                rsort($pairValues);
+                // Add the hand with the two pairs and the value of the highest card of the hands to $twoPair
+                $twoPair[] = ['cards' => $cards, 'pair1' => $pairValues[0], 'pair2' => $pairValues[1], 'highCard' => $this->getHighCard($cards, $pairValues[0], $pairValues[1])];
+            }
+        }
+
+        usort($twoPair, function ($a, $b) {
+            // Compara las primeras parejas
+            $pair1Comparison = array_search($b['pair1'], $this->order) - array_search($a['pair1'], $this->order);
+            if ($pair1Comparison !== 0) {
+                return $pair1Comparison;
+            }
+            // Compara las segundas parejas si las primeras parejas son iguales
+            $pair2Comparison = array_search($b['pair2'], $this->order) - array_search($a['pair2'], $this->order);
+            if ($pair2Comparison !== 0) {
+                return $pair2Comparison;
+            }
+            // Compara la carta más alta si tanto las primeras como las segundas parejas son iguales
+            return array_search($a['highCard'], $this->order) - array_search($b['highCard'], $this->order);
+        });
+
+        if (!empty($twoPair)) {
+            $highestTwoPair = end($twoPair);
+            $this->bestHands[] = implode(",", $highestTwoPair['cards']);
+        }
+    }
+
+    // Obtain the highest card that is not part of the two pairs
+    private function getHighCard($cards, $pair1, $pair2)
+    {
+        $numbers = [];
+        foreach ($cards as $currentCard) {
+            $currentNumber = substr($currentCard, 0, -1);
+            if ($currentNumber != $pair1 && $currentNumber != $pair2) {
+                $numbers[] = array_search($currentNumber, $this->order);
+            }
+        }
+        rsort($numbers);
+        return $numbers[0];
+    }
+
 
     private function compareFlushes($flush1, $flush2)
     {
@@ -386,6 +453,8 @@ class Poker
 // $hands = ['4S,6C,7S,8D,5H', '5S,7H,8S,9D,6H'];
 // $hands = ['4H,7H,8H,9H,6H', '2S,4S,5S,6S,7S'];
 // Three pair
-$hands = ['2S,8H,2H,8D,JH', '4S,5H,4C,8S,4H'];
+// $hands = ['2S,8H,2H,8D,JH', '4S,5H,4C,8S,4H'];
+// Two pairs
+$hands = ['JS,KH,JD,KD,3H', 'JS,KH,KC,JS,8D'];
 
 $instance = new Poker($hands);
