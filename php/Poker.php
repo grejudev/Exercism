@@ -43,6 +43,9 @@ class Poker
 
         $this->TwoPair($hands_splitted);
         if (!empty($this->bestHands)) return;
+
+        $this->OnePair($hands_splitted);
+        if (!empty($this->bestHands)) return;
         // Add more hand evaluations here...
     }
 
@@ -418,6 +421,52 @@ class Poker
         }
     }
 
+    private function OnePair($hands)
+    {
+        $onePair = [];
+
+        foreach ($hands as $cards) {
+            $numbers = [];
+            foreach ($cards as $currentCard) {
+                $currentNumber = substr($currentCard, 0, -1);
+                $numbers[$currentNumber] = isset($numbers[$currentNumber]) ? $numbers[$currentNumber] + 1 : 1;
+            }
+
+            // Find pair
+            $pairValue = [];
+            foreach ($numbers as $number => $count) {
+                if ($count === 2) {
+                    $pairValue[] = $number;
+                    $onePair[] = ['cards' => $cards, 'pair' => $pairValue[0], 'restOfCards' => $this->getRestCards($cards, $pairValue[0])];
+                }
+            }
+        }
+
+        usort($onePair, function ($a, $b) {
+            // Comparar la pareja
+            $pairComparison = array_search($b['pair'], $this->order) - array_search($a['pair'], $this->order);
+            if ($pairComparison !== 0) {
+                return $pairComparison;
+            }
+    
+            // Comparar la carta más alta que no forma parte de la pareja
+            for ($i = 0; $i < count($a['restOfCards']); $i++) {
+                $restCardComparison = $b['restOfCards'][$i] - $a['restOfCards'][$i];
+                if ($restCardComparison !== 0) {
+                    return $restCardComparison;
+                }
+            }
+    
+            // Si todas las cartas restantes son iguales, comparar la mano completa como una cadena
+            return strcmp(implode(",", $a['cards']), implode(",", $b['cards']));
+        });
+
+        if (!empty($onePair)) {
+            $highestPair = end($onePair);
+            $this->bestHands[] = implode(",", $highestPair['cards']);
+        }
+    }
+
     // Obtain the highest card that is not part of the two pairs
     private function getHighCard($cards, $pair1, $pair2)
     {
@@ -431,6 +480,21 @@ class Poker
         rsort($numbers);
         return $numbers[0];
     }
+
+    // Obtain the rest of cards that is not part of the pair
+    private function getRestCards($cards, $pair)
+    {
+        $numbers = [];
+        foreach ($cards as $currentCard) {
+            $currentNumber = substr($currentCard, 0, -1);
+            if ($currentNumber != $pair) {
+                $numbers[] = array_search($currentNumber, $this->order);
+            }
+        }
+        sort($numbers);
+        return $numbers;
+    }
+
 
 
     private function compareFlushes($flush1, $flush2)
@@ -455,6 +519,8 @@ class Poker
 // Three pair
 // $hands = ['2S,8H,2H,8D,JH', '4S,5H,4C,8S,4H'];
 // Two pairs
-$hands = ['JS,KH,JD,KD,3H', 'JS,KH,KC,JS,8D'];
+// $hands = ['JS,KH,JD,KD,3H', 'JS,KH,KC,JS,8D'];
+// Pair
+$hands = ['4S,4H,6S,3D,JH', '7S,4H,6C,4D,JD'];
 
 $instance = new Poker($hands);
