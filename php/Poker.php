@@ -21,7 +21,11 @@ class Poker
         foreach ($hands as $str) {
             $hands_splitted[] = explode(",", $str);
         }
-
+        // Single hands always wins
+        if (count($hands_splitted) === 1) {
+            $this->bestHands[] = implode(",", $hands);
+            return;
+        }
         // Call methods for hand evaluation in order of highest to lowest
         $this->StraightFlush($hands_splitted);
         if (!empty($this->bestHands)) return;
@@ -448,7 +452,7 @@ class Poker
             if ($pairComparison !== 0) {
                 return $pairComparison;
             }
-    
+
             // Comparar la carta más alta que no forma parte de la pareja
             for ($i = 0; $i < count($a['restOfCards']); $i++) {
                 $restCardComparison = $b['restOfCards'][$i] - $a['restOfCards'][$i];
@@ -456,7 +460,7 @@ class Poker
                     return $restCardComparison;
                 }
             }
-    
+
             // Si todas las cartas restantes son iguales, comparar la mano completa como una cadena
             return strcmp(implode(",", $a['cards']), implode(",", $b['cards']));
         });
@@ -521,6 +525,7 @@ class Poker
 // Two pairs
 // $hands = ['JS,KH,JD,KD,3H', 'JS,KH,KC,JS,8D'];
 // Pair
-$hands = ['4S,4H,6S,3D,JH', '7S,4H,6C,4D,JD'];
+// $hands = ['4S,4H,6S,3D,JH', '7S,4H,6C,4D,JD'];
+$hands = ['4S,5S,7H,8D,JC'];
 
 $instance = new Poker($hands);
