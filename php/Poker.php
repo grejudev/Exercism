@@ -50,6 +50,9 @@ class Poker
 
         $this->OnePair($hands_splitted);
         if (!empty($this->bestHands)) return;
+
+        $this->handsWithHighestCard($hands_splitted);
+        if (!empty($this->bestHands)) return;
         // Add more hand evaluations here...
     }
 
@@ -400,7 +403,7 @@ class Poker
             if (count($pairValues) === 2) {
                 rsort($pairValues);
                 // Add the hand with the two pairs and the value of the highest card of the hands to $twoPair
-                $twoPair[] = ['cards' => $cards, 'pair1' => $pairValues[0], 'pair2' => $pairValues[1], 'highCard' => $this->getHighCard($cards, $pairValues[0], $pairValues[1])];
+                $twoPair[] = ['cards' => $cards, 'pair1' => $pairValues[0], 'pair2' => $pairValues[1], 'highCard' => $this->getHighCardThatIsNotPair($cards, $pairValues[0], $pairValues[1])];
             }
         }
 
@@ -471,8 +474,50 @@ class Poker
         }
     }
 
+    private function handsWithHighestCard($hands)
+    {
+        if (empty($hands)) {
+            return;
+        }
+        $maxHands = [$hands[0]]; // We initialize $maxHand with the first hand
+
+        // Ordenamos hands descending order
+        foreach ($hands as $hand) {
+            $sortedHands[] = $this->sortCards($hand);
+        }
+
+        // Iterate hands
+        $maxHandSorted = $sortedHands[0];
+        for ($i = 1; $i < count($sortedHands); $i++) {
+            $currentHand = $sortedHands[$i];
+
+            // Compare the cards in each position until one is different
+            for ($j = 0; $j < count($currentHand); $j++) {
+                $currentValue = array_search(substr($currentHand[$j], 0, -1), $this->order);
+                $maxHandSorted_Value = array_search(substr($maxHandSorted[$j], 0, -1), $this->order);
+                if ($currentValue === $maxHandSorted_Value && $j === count($currentHand) - 1) { // If all cards number are equal
+                    $maxHands[] = $hands[$i];
+                    continue;
+                } elseif ($currentValue < $maxHandSorted_Value) {
+                    // Higher card was found: new $maxHand found so far
+                    $maxHandSorted = $sortedHands[$i];
+                    $maxHands = [$hands[$i]];
+                    break;
+                } elseif ($currentValue > $maxHandSorted_Value) {
+                    // Smaller card was found: $maxHand remains the same
+                    break;
+                }
+            }
+        }
+
+        // Return $maxHands
+        foreach ($maxHands as $cards) {
+            $this->bestHands[] = implode(",", $cards);
+        }
+    }
+
     // Obtain the highest card that is not part of the two pairs
-    private function getHighCard($cards, $pair1, $pair2)
+    private function getHighCardThatIsNotPair($cards, $pair1, $pair2)
     {
         $numbers = [];
         foreach ($cards as $currentCard) {
@@ -499,8 +544,6 @@ class Poker
         return $numbers;
     }
 
-
-
     private function compareFlushes($flush1, $flush2)
     {
         // Compare the ranks of the highest cards in the flushes
@@ -526,6 +569,6 @@ class Poker
 // $hands = ['JS,KH,JD,KD,3H', 'JS,KH,KC,JS,8D'];
 // Pair
 // $hands = ['4S,4H,6S,3D,JH', '7S,4H,6C,4D,JD'];
-$hands = ['4S,5S,7H,8D,JC'];
+$hands = ['2S,4S,5D,6H,JH', '4D,5S,6S,8D,3C', '2S,4C,7S,9H,10H', 'JH,4H,5C,6C,2D'];
 
 $instance = new Poker($hands);
