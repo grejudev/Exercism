@@ -169,11 +169,12 @@ class Poker
             $highestValue = $fourOfAKindHands[0]['value'];
             foreach ($fourOfAKindHands as $hand) {
                 if ($hand['value'] === $highestValue) {
-                    $this->bestHands[] = implode(",", $hand['cards']);
+                    $bestHands[] = $hand['cards'];
                 } else {
                     break;
                 }
             }
+            $this->handsWithHighestCard($bestHands);
         }
     }
 
@@ -294,12 +295,12 @@ class Poker
 
     private function Straight($hands)
     {
-        $originalStraightFlushHands = []; // Stores all original hands that are StraightFlus
-        $maxStraightFlushValue = array_search('2', $this->order); // Card with number 2
+        $originalStraightHands = []; // Stores all original hands that are StraightFlus
+        $maxStraightValue = array_search('2', $this->order); // Card with number 2
 
         foreach ($hands as $cards) {
-            $straightFlush = true;
-            $straightFlushValue = -1; // Stores the value of the found StraightFlus
+            $straight = true;
+            $straightValue = -1; // Stores the value of the found StraightFlus
 
             // Order cards
             $sortedCards = $this->sortCards($cards);
@@ -315,24 +316,24 @@ class Poker
                 $nextPosition = array_search($nextNumber, $this->order);
 
                 if ($nextPosition !== $currentPosition + 1) {
-                    $straightFlush = false; // Is not a StraightFlus
+                    $straight = false; // Is not a StraightFlus
                     break;
                 }
 
-                if ($straightFlushValue === -1) {
-                    $straightFlushValue = $currentPosition; // Assigns the first value of the StraightFlus
+                if ($straightValue === -1) {
+                    $straightValue = $currentPosition; // Assigns the first value of the StraightFlus
                 }
             }
 
-            if ($straightFlush) {
-                $originalStraightFlushHands[] = ['cards' => $cards, 'value' => $straightFlushValue];
-                $maxStraightFlushValue = min($maxStraightFlushValue, $straightFlushValue);
+            if ($straight) {
+                $originalStraightHands[] = ['cards' => $cards, 'value' => $straightValue];
+                $maxStraightValue = min($maxStraightValue, $straightValue);
             }
         }
 
         // Filter out hands that contain the highest straight or ties
-        $this->bestHands = array_filter($originalStraightFlushHands, function ($hand) use ($maxStraightFlushValue) {
-            return $hand['value'] === $maxStraightFlushValue;
+        $this->bestHands = array_filter($originalStraightHands, function ($hand) use ($maxStraightValue) {
+            return $hand['value'] === $maxStraightValue;
         });
 
         // Extract only cards from filtered hands in string format
