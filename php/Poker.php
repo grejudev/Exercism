@@ -372,11 +372,12 @@ class Poker
             $highestValue = $threeOfAKindHands[0]['value'];
             foreach ($threeOfAKindHands as $hand) {
                 if ($hand['value'] === $highestValue) {
-                    $this->bestHands[] = implode(",", $hand['cards']);
+                    $bestHands[] = $hand['cards'];
                 } else {
                     break;
                 }
             }
+            $this->handsWithHighestCard($bestHands);
         }
     }
 
@@ -569,6 +570,6 @@ class Poker
 // $hands = ['JS,KH,JD,KD,3H', 'JS,KH,KC,JS,8D'];
 // Pair
 // $hands = ['4S,4H,6S,3D,JH', '7S,4H,6C,4D,JD'];
-$hands = ['2S,4S,5D,6H,JH', '4D,5S,6S,8D,3C', '2S,4C,7S,9H,10H', 'JH,4H,5C,6C,2D'];
+$hands = ['4S,AH,AS,7C,AD', '4S,AH,AS,8C,AD'];
 
 $instance = new Poker($hands);
