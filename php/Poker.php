@@ -89,6 +89,25 @@ class Poker
             // Ordena las cartas
             $sortedCards = $this->sortCards($cards);
 
+            // Comprueba el caso especial: A,2,3,4,5 en cualquier palo
+            $straightSequence = ['A', '5', '4', '3', '2'];
+            $straightAnySuit = true;
+            foreach ($sortedCards as $index => $card) {
+                if (substr($card, 0, -1) !== $straightSequence[$index]) {
+                    $straightAnySuit = false;
+                    break;
+                }
+            }
+            if ($straightAnySuit) {
+                // Verifica si es Flush
+                $isFlush = $this->isFlush($sortedCards);
+                if ($isFlush) {
+                    // Es Flush y Straight Flush
+                    $originalStraightFlushHands[] = implode(",", $originalCards);
+                }
+                continue;
+            }
+
             for ($i = 0; $i < count($sortedCards) - 1; $i++) {
                 $currentCard = $sortedCards[$i];
                 $nextCard = $sortedCards[$i + 1];
@@ -118,24 +137,42 @@ class Poker
 
             // Verifica si es Flush
             if ($straightFlush) {
-                foreach ($suits as $suit) {
-                    if (count($suit) === count($sortedCards)) {
-                        // Es Flush y Straight Flush
-                        if ($straightFlushValue < $maxStraightFlushValue) {
-                            // Si es la mano más alta hasta el momento, la reemplazamos
-                            $originalStraightFlushHands = [implode(",", $originalCards)];
-                            $maxStraightFlushValue = $straightFlushValue;
-                        } elseif ($straightFlushValue === $maxStraightFlushValue) {
-                            // Si es igual a la mano más alta hasta el momento, la agregamos
-                            $originalStraightFlushHands[] = implode(",", $originalCards);
-                        }
-                        break;
+                // Verifica si es Flush
+                $isFlush = $this->isFlush($sortedCards);
+
+                if ($isFlush) {
+                    // Es Flush y Straight Flush
+                    if ($straightFlushValue < $maxStraightFlushValue) {
+                        // Si es la mano más alta hasta el momento, la reemplazamos
+                        $originalStraightFlushHands = [implode(",", $originalCards)];
+                        $maxStraightFlushValue = $straightFlushValue;
+                    } elseif ($straightFlushValue === $maxStraightFlushValue) {
+                        // Si es igual a la mano más alta hasta el momento, la agregamos
+                        $originalStraightFlushHands[] = implode(",", $originalCards);
                     }
                 }
             }
         }
         // Almacena las manos Straight Flush más altas
         $this->bestHands = $originalStraightFlushHands;
+    }
+
+    // Función para verificar si una mano es Flush
+    private function isFlush($cards)
+    {
+        $suits = [];
+        foreach ($cards as $currentCard) {
+            $currentSuit = substr($currentCard, -1);
+            $suits[$currentSuit][] = $currentCard;
+        }
+
+        foreach ($suits as $suit) {
+            if (count($suit) === count($cards)) {
+                // Todas las cartas tienen el mismo palo, por lo que es Flush
+                return true;
+            }
+        }
+        return false;
     }
 
     private function FourOfAKind($hands)
@@ -295,15 +332,31 @@ class Poker
 
     private function Straight($hands)
     {
-        $originalStraightHands = []; // Stores all original hands that are StraightFlus
+        $originalStraightHands = []; // Stores all original hands that are Straight
         $maxStraightValue = array_search('2', $this->order); // Card with number 2
 
         foreach ($hands as $cards) {
             $straight = true;
-            $straightValue = -1; // Stores the value of the found StraightFlus
+            $straightValue = -1; // Stores the value of the found Straight
 
             // Order cards
             $sortedCards = $this->sortCards($cards);
+
+            // Check for special case: A,2,3,4,5
+            $straightSequence = ['A', '5', '4', '3', '2'];
+            $straightAnySuit = true;
+            foreach ($sortedCards as $index => $card) {
+                if (substr($card, 0, -1) !== $straightSequence[$index]) {
+                    $straightAnySuit = false;
+                    break;
+                }
+            }
+
+            if ($straightAnySuit) {
+                $originalStraightHands[] = ['cards' => $cards, 'value' => 0];
+                $maxStraightValue = 0;
+                continue;
+            }
 
             for ($i = 0; $i < count($sortedCards) - 1; $i++) {
                 $currentCard = $sortedCards[$i];
@@ -316,12 +369,12 @@ class Poker
                 $nextPosition = array_search($nextNumber, $this->order);
 
                 if ($nextPosition !== $currentPosition + 1) {
-                    $straight = false; // Is not a StraightFlus
+                    $straight = false; // Is not a Straight
                     break;
                 }
 
                 if ($straightValue === -1) {
-                    $straightValue = $currentPosition; // Assigns the first value of the StraightFlus
+                    $straightValue = $currentPosition; // Assigns the first value of the Straight
                 }
             }
 
@@ -571,6 +624,6 @@ class Poker
 // $hands = ['JS,KH,JD,KD,3H', 'JS,KH,KC,JS,8D'];
 // Pair
 // $hands = ['4S,4H,6S,3D,JH', '7S,4H,6C,4D,JD'];
-$hands = ['4S,AH,AS,7C,AD', '4S,AH,AS,8C,AD'];
+$hands = ['4S,5H,4C,8D,4H', '4D,AD,3D,2D,5D'];
 
 $instance = new Poker($hands);
