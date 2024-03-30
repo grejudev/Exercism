@@ -76,20 +76,20 @@ class Poker
 
     private function StraightFlush($hands)
     {
-        $originalStraightFlushHands = []; // Almacena todas las manos originales que son Straight Flush
+        $originalStraightFlushHands = []; // To Store all original hands that are Straight Flush
         $maxStraightFlushValue = array_search('2', $this->order); // Card with number 2
 
         foreach ($hands as $cards) {
             $straightFlush = true;
-            $straightFlushValue = -1; // Almacena el valor del Straight Flush encontrado
+            $straightFlushValue = -1;
 
-            // Copia de la mano original antes de ordenarla
+            // Copy of the original hand before ordering it
             $originalCards = $cards;
 
-            // Ordena las cartas
+            // Sort the cards
             $sortedCards = $this->sortCards($cards);
 
-            // Comprueba el caso especial: A,2,3,4,5 en cualquier palo
+            // ** Check the special case: A,2,3,4,5 in any suit **
             $straightSequence = ['A', '5', '4', '3', '2'];
             $straightAnySuit = true;
             foreach ($sortedCards as $index => $card) {
@@ -99,14 +99,15 @@ class Poker
                 }
             }
             if ($straightAnySuit) {
-                // Verifica si es Flush
+                // Check if it is Flush
                 $isFlush = $this->isFlush($sortedCards);
                 if ($isFlush) {
-                    // Es Flush y Straight Flush
+                    // It's Flush and Straight Flush
                     $originalStraightFlushHands[] = implode(",", $originalCards);
                 }
                 continue;
             }
+            // ** End of Check the special case: A,2,3,4,5 in any suit **
 
             for ($i = 0; $i < count($sortedCards) - 1; $i++) {
                 $currentCard = $sortedCards[$i];
@@ -118,14 +119,14 @@ class Poker
                 $currentPosition = array_search($currentNumber, $this->order);
                 $nextPosition = array_search($nextNumber, $this->order);
 
-                // Verifica si es Straight
+                // Check if it is Straight
                 if ($nextPosition !== $currentPosition + 1) {
-                    $straightFlush = false; // No es un Straight Flush
+                    $straightFlush = false; // Not a Straight Flush
                     break;
                 }
 
                 if ($straightFlushValue === -1) {
-                    $straightFlushValue = $currentPosition; // Asigna el primer valor del Straight Flush
+                    $straightFlushValue = $currentPosition; // Assigns the first value of the Straight Flush
                 }
             }
             $suits = [];
@@ -135,25 +136,23 @@ class Poker
                 $suits[$currentSuit][] = $currentCard;
             }
 
-            // Verifica si es Flush
             if ($straightFlush) {
-                // Verifica si es Flush
+                // Check if it is Flush
                 $isFlush = $this->isFlush($sortedCards);
 
                 if ($isFlush) {
-                    // Es Flush y Straight Flush
+                    // It's Flush and Straight Flush
                     if ($straightFlushValue < $maxStraightFlushValue) {
-                        // Si es la mano más alta hasta el momento, la reemplazamos
+                        // If it is the highest hand so far, we replace it
                         $originalStraightFlushHands = [implode(",", $originalCards)];
                         $maxStraightFlushValue = $straightFlushValue;
                     } elseif ($straightFlushValue === $maxStraightFlushValue) {
-                        // Si es igual a la mano más alta hasta el momento, la agregamos
+                        // If it is equal to the highest hand so far, we add it
                         $originalStraightFlushHands[] = implode(",", $originalCards);
                     }
                 }
             }
         }
-        // Almacena las manos Straight Flush más altas
         $this->bestHands = $originalStraightFlushHands;
     }
 
@@ -168,7 +167,7 @@ class Poker
 
         foreach ($suits as $suit) {
             if (count($suit) === count($cards)) {
-                // Todas las cartas tienen el mismo palo, por lo que es Flush
+                // All cards have the same suit, so it's Flush
                 return true;
             }
         }
@@ -220,7 +219,6 @@ class Poker
         $fullHouseHands = [];
 
         foreach ($hands as $cards) {
-            $numberValue = -1;
             $numbers = [];
             foreach ($cards as $currentCard) {
                 $currentNumber = substr($currentCard, 0, -1);
@@ -325,7 +323,6 @@ class Poker
 
         // Add the best flush hand to $this->bestHands
         if (!empty($bestFlush)) {
-            // Convert the best flush to a comma-separated string and add it to $this->bestHands
             $this->bestHands[] = implode(",", $bestFlush);
         }
     }
@@ -456,17 +453,17 @@ class Poker
         }
 
         usort($twoPair, function ($a, $b) {
-            // Compara las primeras parejas
+            // Compare the first pairs
             $pair1Comparison = array_search($b['pair1'], $this->order) - array_search($a['pair1'], $this->order);
             if ($pair1Comparison !== 0) {
                 return $pair1Comparison;
             }
-            // Compara las segundas parejas si las primeras parejas son iguales
+            // Compare the second pairs if the first pairs are the same
             $pair2Comparison = array_search($b['pair2'], $this->order) - array_search($a['pair2'], $this->order);
             if ($pair2Comparison !== 0) {
                 return $pair2Comparison;
             }
-            // Compara la carta más alta si tanto las primeras como las segundas parejas son iguales
+            // Compare the highest card if both the first and second pairs are the same
             return array_search($a['highCard'], $this->order) - array_search($b['highCard'], $this->order);
         });
 
@@ -498,13 +495,13 @@ class Poker
         }
 
         usort($onePair, function ($a, $b) {
-            // Comparar la pareja
+            // Compare the pair
             $pairComparison = array_search($b['pair'], $this->order) - array_search($a['pair'], $this->order);
             if ($pairComparison !== 0) {
                 return $pairComparison;
             }
 
-            // Comparar la carta más alta que no forma parte de la pareja
+            // Compare the highest card that is not part of the pair
             for ($i = 0; $i < count($a['restOfCards']); $i++) {
                 $restCardComparison = $b['restOfCards'][$i] - $a['restOfCards'][$i];
                 if ($restCardComparison !== 0) {
@@ -512,7 +509,7 @@ class Poker
                 }
             }
 
-            // Si todas las cartas restantes son iguales, comparar la mano completa como una cadena
+            // If all remaining cards are the same, compare the entire hand as a string
             return strcmp(implode(",", $a['cards']), implode(",", $b['cards']));
         });
 
@@ -529,7 +526,7 @@ class Poker
         }
         $maxHands = [$hands[0]]; // We initialize $maxHand with the first hand
 
-        // Ordenamos hands descending order
+        // We sort hands in descending order
         foreach ($hands as $hand) {
             $sortedHands[] = $this->sortCards($hand);
         }
