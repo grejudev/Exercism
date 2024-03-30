@@ -157,7 +157,7 @@ class Poker
         $this->bestHands = $originalStraightFlushHands;
     }
 
-    // Función para verificar si una mano es Flush
+    // Function to check if a hand is Flush
     private function isFlush($cards)
     {
         $suits = [];
@@ -384,15 +384,8 @@ class Poker
             }
         }
 
-        // Filter out hands that contain the highest straight or ties
-        $this->bestHands = array_filter($originalStraightHands, function ($hand) use ($maxStraightValue) {
-            return $hand['value'] === $maxStraightValue;
-        });
-
-        // Extract only cards from filtered hands in string format
-        $this->bestHands = array_map(function ($hand) {
-            return implode(",", $hand['cards']);
-        }, $this->bestHands);
+        // Return higher hand with all found hands as parameters
+        $this->handsWithHighestCard(array_column($originalStraightHands, 'cards'));
     }
 
     private function ThreeOfAKind($hands)
@@ -615,15 +608,6 @@ class Poker
 }
 
 
-
-// $hands = ['4S,6C,7S,8D,5H', '5S,7H,8S,9D,6H'];
-// $hands = ['4H,7H,8H,9H,6H', '2S,4S,5S,6S,7S'];
-// Three pair
-// $hands = ['2S,8H,2H,8D,JH', '4S,5H,4C,8S,4H'];
-// Two pairs
-// $hands = ['JS,KH,JD,KD,3H', 'JS,KH,KC,JS,8D'];
-// Pair
-// $hands = ['4S,4H,6S,3D,JH', '7S,4H,6C,4D,JD'];
-$hands = ['4S,5H,4C,8D,4H', '4D,AD,3D,2D,5D'];
+$hands = ['4S,6C,7S,8D,5H', '5S,7H,8S,9D,6H'];
 
 $instance = new Poker($hands);
