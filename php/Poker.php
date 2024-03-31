@@ -26,34 +26,22 @@ class Poker
             $this->bestHands[] = implode(",", $hands);
             return;
         }
-        // Call methods for hand evaluation in order of highest to lowest
-        $this->StraightFlush($hands_splitted);
-        if (!empty($this->bestHands)) return;
+        $this->evaluateHands($hands_splitted);
+    }
 
-        $this->FourOfAKind($hands_splitted);
-        if (!empty($this->bestHands)) return;
+    private function evaluateHands(array $hands): void
+    {
+        $methods = [
+            'StraightFlush', 'FourOfAKind', 'FullHouse', 'Flush',
+            'Straight', 'ThreeOfAKind', 'TwoPair', 'OnePair', 'handsWithHighestCard'
+        ];
 
-        $this->FullHouse($hands_splitted);
-        if (!empty($this->bestHands)) return;
-
-        $this->Flush($hands_splitted);
-        if (!empty($this->bestHands)) return;
-
-        $this->Straight($hands_splitted);
-        if (!empty($this->bestHands)) return;
-
-        $this->ThreeOfAKind($hands_splitted);
-        if (!empty($this->bestHands)) return;
-
-        $this->TwoPair($hands_splitted);
-        if (!empty($this->bestHands)) return;
-
-        $this->OnePair($hands_splitted);
-        if (!empty($this->bestHands)) return;
-
-        $this->handsWithHighestCard($hands_splitted);
-        if (!empty($this->bestHands)) return;
-        // Add more hand evaluations here...
+        foreach ($methods as $method) {
+            $this->$method($hands);
+            if (!empty($this->bestHands)) {
+                return;
+            }
+        }
     }
 
     private function sortCards(array &$cards)
