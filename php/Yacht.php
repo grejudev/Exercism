@@ -43,9 +43,26 @@ class Yacht
 {
     public function score(array $rolls, string $category): int
     {
+        if (empty($rolls)) {
+            throw new InvalidArgumentException("No se proporcionaron lanzamientos de dados.");
+        }
+        
+        if (!in_array($category, ['yacht', 'ones', 'twos', 'threes', 'fours', 'fives', 'sixes'])) {
+            throw new InvalidArgumentException("La categoría proporcionada no es válida.");
+        }
+
         $score = $this->$category($rolls);
 
         return $score;
+    }
+
+    private function yacht($rolls) : int {
+        $target = $rolls[0];
+        $count_values = array_count_values($rolls);
+        if($count_values[$target] === 5){
+            return 50;
+        }
+        return 0;
     }
 
     private function ones(array $rolls) : int {
@@ -79,4 +96,4 @@ class Yacht
 }
 
 $yatch = new Yacht();
-$yatch->score([2, 3, 4, 5, 6], 'twos');
+$yatch->score([4, 5, 5, 5, 5], 'yacht');
