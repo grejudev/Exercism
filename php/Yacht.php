@@ -46,22 +46,63 @@ class Yacht
         if (empty($rolls)) {
             throw new InvalidArgumentException("No se proporcionaron lanzamientos de dados.");
         }
-        
-        if (!in_array($category, ['yacht', 'ones', 'twos', 'threes', 'fours', 'fives', 'sixes', 'full house', 'four of a kind'])) {
+
+        if (!in_array($category, ['yacht', 'ones', 'twos', 'threes', 'fours', 'fives', 'sixes', 'full house', 'four of a kind', 'little straight', 'big straight'])) {
             throw new InvalidArgumentException("La categoría proporcionada no es válida.");
         }
-        if ($category =='full house') {
+        
+        if ($category == 'full house') {
             $category = 'fullHouse';
         }
         if ($category == 'four of a kind') {
             $category = 'fourOfAKind';
+        }
+        if ($category == 'little straight') {
+            $category = 'littleStraight';
+        }
+        if ($category == 'big straight') {
+            $category = 'bigStraight';
         }
 
         $score = $this->$category($rolls);
 
         return $score;
     }
-    private function fourOfAKind($rolls) : int {
+
+    private function isStraight(array $rolls, int $start, int $end): bool
+    {
+        $straight = true;
+        sort($rolls);
+        $min = min($rolls);
+        $max = max($rolls);
+        for ($i = 0; $i < count($rolls) - 1; $i++) {
+            $current = $rolls[$i];
+            $next = $rolls[$i + 1];
+
+            // Check if it is Straight
+            if ($next !== $current + 1) {
+                $straight = false; // Not a Straight
+                break;
+            }
+        }
+        if ($straight && $min == $start && $max == $end) {
+            return true;
+        }
+        return false;
+    }
+
+    private function littleStraight(array $rolls): int
+    {
+        return $this->isStraight($rolls, 1, 5) ? 30 : 0;
+    }
+
+    private function bigStraight(array $rolls): int
+    {
+        return $this->isStraight($rolls, 2, 6) ? 30 : 0;
+    }
+
+    private function fourOfAKind($rolls): int
+    {
         $count_values = array_count_values($rolls);
         if (in_array(4, $count_values) || in_array(5, $count_values)) {
             foreach ($count_values as $number => $count) {
@@ -73,7 +114,8 @@ class Yacht
         return 0;
     }
 
-    private function fullHouse($rolls) : int {
+    private function fullHouse($rolls): int
+    {
         $count_values = array_count_values($rolls);
         if (in_array(3, $count_values) && in_array(2, $count_values)) {
             return array_sum($rolls);
@@ -81,35 +123,43 @@ class Yacht
         return 0;
     }
 
-    private function yacht($rolls) : int {
+    private function yacht($rolls): int
+    {
         $target = $rolls[0];
         $count_values = array_count_values($rolls);
-        if($count_values[$target] === 5){
+        if ($count_values[$target] === 5) {
             return 50;
         }
         return 0;
     }
 
-    private function ones(array $rolls) : int {
+    private function ones(array $rolls): int
+    {
         return $this->numberOfTarget("1", $rolls);
     }
-    private function twos(array $rolls) : int {
+    private function twos(array $rolls): int
+    {
         return $this->numberOfTarget("2", $rolls);
     }
-    private function threes(array $rolls) : int {
+    private function threes(array $rolls): int
+    {
         return $this->numberOfTarget("3", $rolls);
     }
-    private function fours(array $rolls) : int {
+    private function fours(array $rolls): int
+    {
         return $this->numberOfTarget("4", $rolls);
     }
-    private function fives(array $rolls) : int {
+    private function fives(array $rolls): int
+    {
         return $this->numberOfTarget("5", $rolls);
     }
-    private function sixes(array $rolls) : int {
+    private function sixes(array $rolls): int
+    {
         return $this->numberOfTarget("6", $rolls);
     }
 
-    private function numberOfTarget(string $target, array $rolls) : int {
+    private function numberOfTarget(string $target, array $rolls): int
+    {
         $times = 0;
         foreach ($rolls as $value) {
             if ($target === strval($value)) {
@@ -121,4 +171,4 @@ class Yacht
 }
 
 $yatch = new Yacht();
-$yatch->score([6, 6, 4, 6, 6], 'four of a kind');
+$yatch->score([1, 5, 2, 3, 4], 'little straight');
