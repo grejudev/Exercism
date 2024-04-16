@@ -47,7 +47,7 @@ class Yacht
             throw new InvalidArgumentException("No se proporcionaron lanzamientos de dados.");
         }
 
-        if (!in_array($category, ['yacht', 'ones', 'twos', 'threes', 'fours', 'fives', 'sixes', 'full house', 'four of a kind', 'little straight', 'big straight'])) {
+        if (!in_array($category, ['yacht', 'ones', 'twos', 'threes', 'fours', 'fives', 'sixes', 'full house', 'four of a kind', 'little straight', 'big straight', 'choice'])) {
             throw new InvalidArgumentException("La categoría proporcionada no es válida.");
         }
         // Remove spaces and convert to camelCase
@@ -56,6 +56,11 @@ class Yacht
         $score = $this->$category($rolls);
 
         return $score;
+    }
+
+    private function choice($rolls): int
+    {
+        return array_sum($rolls);
     }
 
     private function isStraight(array $rolls, int $start, int $end): bool
@@ -160,4 +165,4 @@ class Yacht
 }
 
 $yatch = new Yacht();
-$yatch->score([1, 5, 2, 3, 4], 'little straight');
+$yatch->score([3, 3, 5, 6, 6], 'choice');
