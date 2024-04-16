@@ -50,19 +50,8 @@ class Yacht
         if (!in_array($category, ['yacht', 'ones', 'twos', 'threes', 'fours', 'fives', 'sixes', 'full house', 'four of a kind', 'little straight', 'big straight'])) {
             throw new InvalidArgumentException("La categoría proporcionada no es válida.");
         }
-        
-        if ($category == 'full house') {
-            $category = 'fullHouse';
-        }
-        if ($category == 'four of a kind') {
-            $category = 'fourOfAKind';
-        }
-        if ($category == 'little straight') {
-            $category = 'littleStraight';
-        }
-        if ($category == 'big straight') {
-            $category = 'bigStraight';
-        }
+        // Remove spaces and convert to camelCase
+        $category = str_replace(' ', '', lcfirst(ucwords($category, ' ')));
 
         $score = $this->$category($rolls);
 
