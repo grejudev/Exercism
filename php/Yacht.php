@@ -47,13 +47,23 @@ class Yacht
             throw new InvalidArgumentException("No se proporcionaron lanzamientos de dados.");
         }
         
-        if (!in_array($category, ['yacht', 'ones', 'twos', 'threes', 'fours', 'fives', 'sixes'])) {
+        if (!in_array($category, ['yacht', 'ones', 'twos', 'threes', 'fours', 'fives', 'sixes', 'full house'])) {
             throw new InvalidArgumentException("La categoría proporcionada no es válida.");
+        }
+        if ($category=='full house') {
+            $category = 'fullHouse';
         }
 
         $score = $this->$category($rolls);
 
         return $score;
+    }
+    private function fullHouse($rolls) : int {
+        $count_values = array_count_values($rolls);
+        if (in_array(3, $count_values) && in_array(2, $count_values)) {
+            return array_sum($rolls);
+        }
+        return 0;
     }
 
     private function yacht($rolls) : int {
@@ -96,4 +106,4 @@ class Yacht
 }
 
 $yatch = new Yacht();
-$yatch->score([4, 5, 5, 5, 5], 'yacht');
+$yatch->score([2, 2, 4, 4, 4], 'full house');
