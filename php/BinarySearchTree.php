@@ -60,7 +60,7 @@ class BinarySearchTree
     public ?BinarySearchTree $left;
     public ?BinarySearchTree $right;
     public int $data;
-
+    private array $sortedData = [];
     public function __construct(int $number)
     {
         $this->data = $number;
@@ -116,12 +116,26 @@ class BinarySearchTree
         return $added;
     }
 
+    /**
+     * Method to call the recursive method for the first time and return sorted data
+     */
     public function getSortedData(): array
     {
-        $sortedData = [];
-        return $sortedData;
+        $this->getNode($this);
+        return $this->sortedData;
     }
 
-    
-
+    /**
+     * Method to recursively search first left nodes, then node and then right nodes
+     */
+    private function getNode($node): void
+    {
+        if ($node->left) {
+            $this->getNode($node->left);
+        }
+        array_push($this->sortedData, $node->data);
+        if ($node->right) {
+            $this->getNode($node->right);
+        }
+    }
 }
