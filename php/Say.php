@@ -51,5 +51,76 @@ declare(strict_types=1);
 
 function say(int $number): string
 {
-    throw new \BadFunctionCallException("Implement the say function");
+    $result = range0to99($number);
+    return $result;
 }
+
+function range0to99($num): string
+{
+
+    if ($num < 0 || $num > 99) {
+        throw new \InvalidArgumentException("Input must be between 0 and 99");
+    }
+
+    $length = strlen(strval($num));
+    if ($length === 1 && singleDigit($num) !== null) {
+        return singleDigit($num);
+    } elseif ($length === 2 && doubleDigit($num) !== null) {
+        return doubleDigit($num);
+    } else {
+        // Take first digit with followed by a 0 to know tens
+        $first_word = doubleDigit(intval(substr(strval($num), 0, 1) . "0"));
+        // Take second digit to know units
+        $second_word = singleDigit(intval(substr(strval($num), 1, 1)));
+        return $first_word . "-" . $second_word;
+    }
+    return "";
+}
+
+function singleDigit($num): ?string
+{
+    $singleDigit = match ($num) {
+        0 => "zero",
+        1 => "one",
+        2 => "two",
+        3 => "three",
+        4 => "four",
+        5 => "five",
+        6 => "six",
+        7 => "seven",
+        8 => "eight",
+        9 => "nine",
+        default => "null"
+    };
+    return $singleDigit;
+}
+
+function doubleDigit($num): ?string
+{
+    $doubleDigit = match ($num) {
+        10 => "ten",
+        11 => "eleven",
+        12 => "twelve",
+        13 => "thirteen",
+        14 => "fourteen",
+        15 => "fiveteen",
+        16 => "sixteen",
+        17 => "seventeen",
+        18 => "eightteen",
+        19 => "nineteen",
+        20 => "twenty",
+        30 => "thirty",
+        40 => "fourty",
+        50 => "fivety",
+        60 => "sixty",
+        70 => "seventy",
+        80 => "eightty",
+        90 => "ninety",
+        default => null,
+    };
+    return $doubleDigit;
+}
+
+echo '<pre>';
+print_r(say(22));
+echo '</pre>';
