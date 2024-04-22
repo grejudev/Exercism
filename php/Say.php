@@ -51,30 +51,48 @@ declare(strict_types=1);
 
 function say(int $number): string
 {
-    $result = range0to99($number);
+    $result = "";
+    $length = strlen(strval($number));
+    match ($length) {
+        0 => "null",
+        1, 2 => $result = $result . range0to99($number, $result),
+        3 => $result = $result . range100to999($number, $result),
+        4 => "ToBeDone",
+        5 => "ToBeDone",
+        6 => "ToBeDone",
+        7 => "ToBeDone",
+        8 => "ToBeDone",
+        9 => "ToBeDone",
+        10 => "ToBeDone",
+        11 => "ToBeDone",
+        12 => "ToBeDone",
+    };
+
     return $result;
 }
 
-function range0to99($num): string
+function range0to99($num, $result): ?string
 {
-
     if ($num < 0 || $num > 99) {
         throw new \InvalidArgumentException("Input must be between 0 and 99");
     }
 
     $length = strlen(strval($num));
     if ($length === 1 && singleDigit($num) !== null) {
-        return singleDigit($num);
+        $result = $result . singleDigit($num);
+        return $result;
     } elseif ($length === 2 && doubleDigit($num) !== null) {
-        return doubleDigit($num);
+        $result = $result . doubleDigit($num);
+        return $result;
     } else {
         // Take first digit with followed by a 0 to know tens
-        $first_word = doubleDigit(intval(substr(strval($num), 0, 1) . "0"));
+        $tens = doubleDigit(intval(substr(strval($num), 0, 1) . "0"));
         // Take second digit to know units
-        $second_word = singleDigit(intval(substr(strval($num), 1, 1)));
-        return $first_word . "-" . $second_word;
+        $units = singleDigit(intval(substr(strval($num), 1, 1)));
+        $result = $result . $tens . "-" . $units;
+        return $result;
     }
-    return "";
+    return null;
 }
 
 function singleDigit($num): ?string
@@ -121,6 +139,30 @@ function doubleDigit($num): ?string
     return $doubleDigit;
 }
 
+function range100to999($num, $result): ?string
+{
+    if ($num < 100 || $num > 999) {
+        throw new \InvalidArgumentException("Input must be between 0 and 99");
+    }
+    $num_hundreds = intval(substr(strval($num), 0, 1));
+    $hundreds = singleDigit($num_hundreds);
+    // Variable to track if "hundred" has been added
+    $hundredAdded = false;
+    if ($num_hundreds !== 0) {
+        $result = $result . $hundreds . " hundred";
+        $hundredAdded = true;
+    }
+    $remainder = intval(substr(strval($num), 1, 2));
+    if ($remainder !== 0) {
+        if ($hundredAdded) {
+            $result = $result . " " . range0to99($remainder, null);
+        } else {
+            $result = $result . " " . range0to99($remainder, $result);
+        }
+    }
+    return $result;
+}
+
 echo '<pre>';
-print_r(say(22));
+print_r(say(1));
 echo '</pre>';
