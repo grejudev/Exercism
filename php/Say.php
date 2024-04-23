@@ -51,49 +51,51 @@ declare(strict_types=1);
 
 function say(int $number): string
 {
+    if ($number < 0 || $number > 999999999999) {
+        throw new \InvalidArgumentException("Input out of range");
+    }
+
     $result = "";
-    $length = strlen(strval($number));
     $array_numbers = str_split(strval($number));
     $chunks = custom_array_chunk($array_numbers);
-    $scale_words = ["trillion", "billion", "million", "thousand"];
-    match ($length) {
-        0 => "null",
-        1, 2 => $result = $result . range0to99($number, $result),
-        3 => $result = $result . range100to999($number, $result),
-        4 => "ToBeDone",
-        5 => "ToBeDone",
-        6 => "ToBeDone",
-        7 => "ToBeDone",
-        8 => "ToBeDone",
-        9 => "ToBeDone",
-        10 => "ToBeDone",
-        11 => "ToBeDone",
-        12 => "ToBeDone",
-    };
+    $scale_words = ["", " thousand ", " million ", " billion ", " trillion "];
+    $scale = count($chunks) - 1;
+    foreach ($chunks as $chunk) {
+        $length = count($chunk);
+        match ($length) {
+            0 => $result = $result . "",
+            1, 2 => $result = $result . range0to99(intval(implode("", $chunk)), $result),
+            3 => $result = $result . range100to999(intval(implode("", $chunk)), $result),
+        };
+        $result .= $scale_words[$scale];
+        $scale--;
+    }
+
 
     return $result;
 }
 
-function range0to99($num, $result): ?string
+function range0to99($num): ?string
 {
+    $str = "";
     if ($num < 0 || $num > 99) {
         throw new \InvalidArgumentException("Input must be between 0 and 99");
     }
 
     $length = strlen(strval($num));
     if ($length === 1 && singleDigit($num) !== null) {
-        $result = $result . singleDigit($num);
-        return $result;
+        $str = $str . singleDigit($num);
+        return $str;
     } elseif ($length === 2 && doubleDigit($num) !== null) {
-        $result = $result . doubleDigit($num);
-        return $result;
+        $str = $str . doubleDigit($num);
+        return $str;
     } else {
         // Take first digit with followed by a 0 to know tens
         $tens = doubleDigit(intval(substr(strval($num), 0, 1) . "0"));
         // Take second digit to know units
         $units = singleDigit(intval(substr(strval($num), 1, 1)));
-        $result = $result . $tens . "-" . $units;
-        return $result;
+        $str = $str . $tens . "-" . $units;
+        return $str;
     }
     return null;
 }
@@ -132,18 +134,19 @@ function doubleDigit($num): ?string
         20 => "twenty",
         30 => "thirty",
         40 => "fourty",
-        50 => "fivety",
+        50 => "fifty",
         60 => "sixty",
         70 => "seventy",
-        80 => "eightty",
+        80 => "eighty",
         90 => "ninety",
         default => null,
     };
     return $doubleDigit;
 }
 
-function range100to999($num, $result): ?string
+function range100to999($num): ?string
 {
+    $str = "";
     if ($num < 100 || $num > 999) {
         throw new \InvalidArgumentException("Input must be between 0 and 99");
     }
@@ -152,18 +155,18 @@ function range100to999($num, $result): ?string
     // Variable to track if "hundred" has been added
     $hundredAdded = false;
     if ($num_hundreds !== 0) {
-        $result = $result . $hundreds . " hundred";
+        $str = $str . $hundreds . " hundred";
         $hundredAdded = true;
     }
     $remainder = intval(substr(strval($num), 1, 2));
     if ($remainder !== 0) {
         if ($hundredAdded) {
-            $result = $result . " " . range0to99($remainder, null);
+            $str = $str . " " . range0to99($remainder, null);
         } else {
-            $result = $result . " " . range0to99($remainder, $result);
+            $str = $str . " " . range0to99($remainder, $str);
         }
     }
-    return $result;
+    return $str;
 }
 
 function custom_array_chunk($array)
