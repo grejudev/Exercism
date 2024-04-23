@@ -53,6 +53,9 @@ function say(int $number): string
 {
     $result = "";
     $length = strlen(strval($number));
+    $array_numbers = str_split(strval($number));
+    $chunks = custom_array_chunk($array_numbers);
+    $scale_words = ["trillion", "billion", "million", "thousand"];
     match ($length) {
         0 => "null",
         1, 2 => $result = $result . range0to99($number, $result),
@@ -163,6 +166,18 @@ function range100to999($num, $result): ?string
     return $result;
 }
 
+function custom_array_chunk($array)
+{
+    $first_chunk_size = count($array) % 3;
+    $first_chunk_size = $first_chunk_size == 0 ? 3 : $first_chunk_size;
+
+    $first_chunk = array_slice($array, 0, $first_chunk_size);
+    $chunks = array_chunk(array_slice($array, $first_chunk_size), 3);
+    array_unshift($chunks, $first_chunk);
+
+    return $chunks;
+}
+
 echo '<pre>';
-print_r(say(1));
+print_r(say(1234567890));
 echo '</pre>';
