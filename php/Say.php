@@ -49,61 +49,87 @@
 
 declare(strict_types=1);
 
+// Main function to convert a number into words
 function say(int $number): string
 {
+    // Validation for input number range
     if ($number < 0 || $number > 999999999999) {
         throw new \InvalidArgumentException("Input out of range");
     }
+    // Special case for number 0
+    if ($number === 0) {
+        return "zero";
+    }
 
+    // Variable to store the final result
     $result = "";
+
+    // Convert the number into an array of digits
     $array_numbers = str_split(strval($number));
+
+    // Divide the array of digits into groups of three
     $chunks = custom_array_chunk($array_numbers);
+
+    // Scales for groups of three digits
     $scale_words = ["", " thousand ", " million ", " billion ", " trillion "];
+
+    // Index of the current scale
     $scale = count($chunks) - 1;
+
+    // Iterate over each group of digits
     foreach ($chunks as $chunk) {
-        $length = count($chunk);
-        match ($length) {
-            0 => $result = $result . "",
-            1, 2 => $result = $result . range0to99(intval(implode("", $chunk)), $result),
-            3 => $result = $result . range100to999(intval(implode("", $chunk)), $result),
+        // Convert the group of digits into an integer
+        $chunk_number = intval(implode("", $chunk));
+        // If the group number is 0, move to the next group
+        if ($chunk_number === 0) {
+            continue;
+        }
+        $length = strlen(strval($chunk_number));
+
+        // Translate the group of digits into words based on its length
+        $result .= match ($length) {
+            0 => "",
+            1, 2 => range0to99($chunk_number),
+            3 => range100to999($chunk_number),
         };
+        // Add the corresponding scale to the result
         $result .= $scale_words[$scale];
+
+        // Decrease the scale index
         $scale--;
     }
 
-
-    return $result;
+    // Remove any trailing whitespace and return the result
+    return trim($result);
 }
 
-function range0to99($num): ?string
+function range0to99($num): string
 {
-    $str = "";
+    // Validation for number range
     if ($num < 0 || $num > 99) {
         throw new \InvalidArgumentException("Input must be between 0 and 99");
     }
 
+    // Length of the number
     $length = strlen(strval($num));
-    if ($length === 1 && singleDigit($num) !== null) {
-        $str = $str . singleDigit($num);
-        return $str;
-    } elseif ($length === 2 && doubleDigit($num) !== null) {
-        $str = $str . doubleDigit($num);
-        return $str;
+
+    // Translate the two-digit number into words based on its value
+    if ($length === 1 && ($word = singleDigit($num)) !== null) {
+        return $word;
+    } elseif ($length === 2 && ($word = doubleDigit($num)) !== null) {
+        return $word;
     } else {
-        // Take first digit with followed by a 0 to know tens
+        // Get the tens and units of the number
         $tens = doubleDigit(intval(substr(strval($num), 0, 1) . "0"));
-        // Take second digit to know units
         $units = singleDigit(intval(substr(strval($num), 1, 1)));
-        $str = $str . $tens . "-" . $units;
-        return $str;
+        return $tens . "-" . $units;
     }
-    return null;
 }
 
+// Function to translate a single-digit number into words
 function singleDigit($num): ?string
 {
-    $singleDigit = match ($num) {
-        0 => "zero",
+    return match ($num) {
         1 => "one",
         2 => "two",
         3 => "three",
@@ -113,14 +139,14 @@ function singleDigit($num): ?string
         7 => "seven",
         8 => "eight",
         9 => "nine",
-        default => "null"
+        default => null
     };
-    return $singleDigit;
 }
 
+// Function to translate a double-digit number into words
 function doubleDigit($num): ?string
 {
-    $doubleDigit = match ($num) {
+    return match ($num) {
         10 => "ten",
         11 => "eleven",
         12 => "twelve",
@@ -133,7 +159,7 @@ function doubleDigit($num): ?string
         19 => "nineteen",
         20 => "twenty",
         30 => "thirty",
-        40 => "fourty",
+        40 => "forty",
         50 => "fifty",
         60 => "sixty",
         70 => "seventy",
@@ -141,34 +167,50 @@ function doubleDigit($num): ?string
         90 => "ninety",
         default => null,
     };
-    return $doubleDigit;
 }
 
+// Function to translate a three-digit number into words
 function range100to999($num): ?string
 {
-    $str = "";
+    // Validation for number range
     if ($num < 100 || $num > 999) {
-        throw new \InvalidArgumentException("Input must be between 0 and 99");
+        throw new \InvalidArgumentException("Input must be between 100 and 999");
     }
+
+    // Get the digit of the hundreds
     $num_hundreds = intval(substr(strval($num), 0, 1));
+
+    // Translate the hundreds into words
     $hundreds = singleDigit($num_hundreds);
-    // Variable to track if "hundred" has been added
+
+    // Variable to store the result of the hundreds
+    $str = "";
+
+    // Indicates if the "hundred" word has been added to the result
     $hundredAdded = false;
+
+    // Add the hundreds to the result if not zero
     if ($num_hundreds !== 0) {
-        $str = $str . $hundreds . " hundred";
+        $str = $hundreds . " hundred";
         $hundredAdded = true;
     }
+
+    // Get the remainder of the number without the hundreds
     $remainder = intval(substr(strval($num), 1, 2));
+
+    // Add the tens and units to the result if not zero
     if ($remainder !== 0) {
         if ($hundredAdded) {
-            $str = $str . " " . range0to99($remainder, null);
+            $str .= " " . range0to99($remainder);
         } else {
-            $str = $str . " " . range0to99($remainder, $str);
+            $str = range0to99($remainder);
         }
     }
+
     return $str;
 }
 
+// Function to split an array into groups of three elements
 function custom_array_chunk($array)
 {
     $first_chunk_size = count($array) % 3;
@@ -181,6 +223,3 @@ function custom_array_chunk($array)
     return $chunks;
 }
 
-echo '<pre>';
-print_r(say(1234567890));
-echo '</pre>';
