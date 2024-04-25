@@ -47,7 +47,10 @@ class ListOps
 
     public function concat(array $list1, array ...$listn): array
     {
-        throw new \BadMethodCallException("Implement the concat function");
+        foreach ($listn as $arr) {
+            $list1 = $this->append($list1, $arr);
+        }
+        return $list1;
     }
 
     /**
@@ -92,3 +95,5 @@ class ListOps
         throw new \BadMethodCallException("Implement the reverse function");
     }
 }
+$intance = new ListOps();
+$intance->concat([1, 2], [3], [], [4, 5, 6]);
