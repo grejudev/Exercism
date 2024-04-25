@@ -39,7 +39,10 @@ class ListOps
 {
     public function append(array $list1, array $list2): array
     {
-        throw new \BadMethodCallException("Implement the append function");
+        foreach ($list2 as $value) {
+            array_push($list1, $value);
+        }
+        return $list1;
     }
 
     public function concat(array $list1, array ...$listn): array
