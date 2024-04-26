@@ -58,7 +58,13 @@ class ListOps
      */
     public function filter(callable $predicate, array $list): array
     {
-        throw new \BadMethodCallException("Implement the filter function");
+        $filtered = [];
+        foreach ($list as $element) {
+            if ($predicate($element) === true) {
+                array_push($filtered, $element);
+            }
+        }
+        return $filtered;
     }
 
     public function length(array $list): int
@@ -96,4 +102,4 @@ class ListOps
     }
 }
 $intance = new ListOps();
-$intance->concat([1, 2], [3], [], [4, 5, 6]);
+$intance->filter(static fn ($el) => $el % 2 === 1, [1, 2, 3, 5]);
