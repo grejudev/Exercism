@@ -69,7 +69,11 @@ class ListOps
 
     public function length(array $list): int
     {
-        throw new \BadMethodCallException("Implement the length function");
+        $counter = 0;
+        foreach ($list as $element) {
+            $counter++;
+        }
+        return $counter;
     }
 
     /**
