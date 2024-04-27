@@ -81,7 +81,11 @@ class ListOps
      */
     public function map(callable $function, array $list): array
     {
-        throw new \BadMethodCallException("Implement the map function");
+        $mapped = [];
+        foreach ($list as $element) {
+            $mapped[] = $function($element);
+        }
+        return $mapped;
     }
 
     /**
