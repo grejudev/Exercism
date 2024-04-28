@@ -93,7 +93,10 @@ class ListOps
      */
     public function foldl(callable $function, array $list, $accumulator)
     {
-        throw new \BadMethodCallException("Implement the foldl function");
+        foreach ($list as $element) {
+            $accumulator = $function($accumulator, $element);
+        }
+        return $accumulator;
     }
 
     /**
@@ -101,7 +104,11 @@ class ListOps
      */
     public function foldr(callable $function, array $list, $accumulator)
     {
-        throw new \BadMethodCallException("Implement the foldr function");
+        for ($i = count($list) - 1; $i >= 0; $i--) {
+            $element = $list[$i];
+            $accumulator = $function($accumulator, $element);
+        }
+        return $accumulator;
     }
 
     public function reverse(array $list): array
@@ -109,5 +116,3 @@ class ListOps
         throw new \BadMethodCallException("Implement the reverse function");
     }
 }
-$intance = new ListOps();
-$intance->filter(static fn ($el) => $el % 2 === 1, [1, 2, 3, 5]);
