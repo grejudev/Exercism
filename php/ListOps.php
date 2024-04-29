@@ -113,6 +113,11 @@ class ListOps
 
     public function reverse(array $list): array
     {
-        throw new \BadMethodCallException("Implement the reverse function");
+        $reversed = [];
+        for ($i = count($list) - 1; $i >= 0; $i--) {
+            $element = $list[$i];
+            $reversed[] = $element;
+        }
+        return $reversed;
     }
 }
