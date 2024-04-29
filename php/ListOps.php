@@ -37,6 +37,9 @@ declare(strict_types=1);
 
 class ListOps
 {
+    /**
+     * Appends the elements of $list2 to $list1.
+     */
     public function append(array $list1, array $list2): array
     {
         foreach ($list2 as $value) {
@@ -55,6 +58,7 @@ class ListOps
 
     /**
      * @param callable(mixed $item): bool $predicate
+     * Filters elements of $list using the $predicate function.
      */
     public function filter(callable $predicate, array $list): array
     {
@@ -67,17 +71,17 @@ class ListOps
         return $filtered;
     }
 
+    /**
+     * Returns the number of elements in the array.
+     */
     public function length(array $list): int
     {
-        $counter = 0;
-        foreach ($list as $element) {
-            $counter++;
-        }
-        return $counter;
+        return count($list);
     }
 
     /**
      * @param callable(mixed $item): mixed $function
+     * Applies the $function to each element of the $list.
      */
     public function map(callable $function, array $list): array
     {
@@ -90,6 +94,7 @@ class ListOps
 
     /**
      * @param callable(mixed $accumulator, mixed $item): mixed $function
+     * Folds (reduces) the array from the left using the $function.
      */
     public function foldl(callable $function, array $list, $accumulator)
     {
@@ -101,6 +106,7 @@ class ListOps
 
     /**
      * @param callable(mixed $accumulator, mixed $item): mixed $function
+     * Folds (reduces) the array from the right using the $function.
      */
     public function foldr(callable $function, array $list, $accumulator)
     {
@@ -111,6 +117,9 @@ class ListOps
         return $accumulator;
     }
 
+    /**
+     * Returns a new array with elements in reverse order.
+     */
     public function reverse(array $list): array
     {
         $reversed = [];
